@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decentralized Identity</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #f7f7f7;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    img.icon {
+      width: 24px;
+      height: 24px;
+    }
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+<body>
+  <h2 style="text-align:center;">Register Identity</h2>
+  <input type="text" id="fullName" placeholder="Full Name" />
+  <input type="text" id="country" placeholder="Country" />
+  <input type="file" id="idFile" />
+  <button onclick="connectWallet()">
+    <img src="https://cryptologos.cc/logos/metamask-fox-logo.png" class="icon" />
+    Sign with MetaMask
+  </button>
+  <button onclick="signWithSolflare()">
+    <img src="https://cryptologos.cc/logos/solflare-solflare-logo.png" class="icon" />
+    Sign with Solflare
+  </button>
+  <button onclick="generateHash()">Generate Identity Hash</button>
+  <div id="status"></div>
+
+  <script>
+    function generateHash() {
+      const name = document.getElementById("fullName").value;
+      const country = document.getElementById("country").value;
+      const fileInput = document.getElementById("idFile");
+      
+      if (!name || !country || fileInput.files.length === 0) {
+        document.getElementById("status").innerText = "Please fill in all fields.";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function() {
+        const fileData = reader.result;
+        const data = name + country + fileData;
+        sha256(data).then(hash => {
+          document.getElementById("status").innerText = "Hash: " + hash;
+        });
+      };
+      reader.readAsText(fileInput.files[0]);
+    }
+
+    async function sha256(str) {
+      const buffer = new TextEncoder("utf-8").encode(str);
+      const hash = await crypto.subtle.digest("SHA-256", buffer);
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function connectWallet() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          await ethereum.request({ method: 'eth_requestAccounts' });
+          document.getElementById("status").innerText = "MetaMask connected.";
+        } catch (err) {
+          document.getElementById("status").innerText = "Connection failed.";
+        }
+      } else {
+        document.getElementById("status").innerText = "MetaMask not found.";
+      }
+    }
+
+    function signWithSolflare() {
+      alert("Solflare integration is coming soon.");
+    }
+  </script>
+</body>
+</html>
